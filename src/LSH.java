@@ -39,6 +39,7 @@ public class LSH extends SimilaritySearcher {
         this.numBands = numBands;
         this.numBuckets = numBuckets;
         this.seed = seed;
+     
     }
 
 
@@ -49,8 +50,16 @@ public class LSH extends SimilaritySearcher {
     public Set<SimilarPair> getSimilarPairsAboveThreshold(double threshold) {
         Set<SimilarPair> similarPairsAboveThreshold = new HashSet<SimilarPair>();
 
-        // THIS METHOD IS REQUIRED
+        System.out.println("Reading and shingling documents...");
+        List<Set<Integer>> docToShingle = reader.readAll();
+        System.out.println(this.numHashes);
+        System.out.println(this.reader.getNumShingles());
 
+        int[][]  hashTable = Minhash
+            .constructHashTable(this.numHashes, this.reader.getNumShingles(), this.seed);
+        
+        
+        int[][] signatureMatrix = Minhash.constructSignatureMatrix(this.reader, hashTable);
         return similarPairsAboveThreshold;
     }
 

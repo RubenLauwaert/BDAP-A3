@@ -35,8 +35,22 @@ public abstract class SimilaritySearcher {
      */
     public <T> double jaccardSimilarity(Set<T> set1, Set<T> set2) {
         double sim = 0;
-        // THIS METHOD IS REQUIRED
+        Set<T> intersection = new HashSet<>();
+
+        for (T item : set1) {
+            if (set2.contains(item)) {
+                intersection.add(item);
+            }
+        }
+
+        int intersectionAmt = intersection.size();
+        int unionAmt = set1.size() + set2.size() - intersectionAmt;
+
+        if (unionAmt > 0) {
+            sim = (double) intersectionAmt / unionAmt;
+        }
+
         return sim;
-    }
+        }
 
 }
