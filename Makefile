@@ -10,7 +10,7 @@
 # Experiment parameters ######################################################
 
 # Dataset directory
-DATAFOLDER=/cw/bdap/assignment3/tweets.tsv
+DATAFOLDER=../tweets.tsv
 
 # Ouptut directory
 OUTPUT=output.tsv
