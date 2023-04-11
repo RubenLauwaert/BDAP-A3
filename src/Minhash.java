@@ -70,24 +70,23 @@ public final class Minhash {
             Set<Integer> shingleDoc = docToShingle.get(docIndex);
             for(int rowIndex : shingleDoc){
                 for(int i=0 ; i < numHashes ; i++){
-                    if(hashValues[rowIndex][i] < signatureMatrix[i][docIndex]){
-                        signatureMatrix[i][docIndex] = hashValues[rowIndex][i];
+                    if(hashValues[rowIndex][i] < signatureMatrix[docIndex][i]){
+                        signatureMatrix[docIndex][i] = hashValues[rowIndex][i];
                     }
                 }
             }
         }
-        printMatrix(signatureMatrix);
-        reader.reset();
         return signatureMatrix;
     }
 
 
     private static int[][] initializeSignatureMatrix(int numHashes, int numObjects){
-        int[][] signatureMatrixInit = new int[numHashes][numObjects];
+        int[][] signatureMatrixInit = new int[numObjects][numHashes];
 
-        for(int r=0 ; r < numHashes ; r++){
-            for(int c=0 ; c < numObjects ; c++){
-                signatureMatrixInit[r][c] = Integer.MAX_VALUE;
+
+        for(int c=0 ; c < numObjects ; c++){
+            for(int r=0 ; r < numHashes ; r++){
+                signatureMatrixInit[c][r] = Integer.MAX_VALUE;
             }
         }
         

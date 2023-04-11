@@ -19,11 +19,11 @@ OUTPUT=output.tsv
 THRESHOLD=0.9
 # NB_TWEETS=8870959
 NB_TWEETS=5000000
-SHINGLE_LENGTH=3
-NB_SHINGLES=1000
-NB_HASHES=50
-NB_BANDS=5
-NB_BUCKETS=1000
+SHINGLE_LENGTH=5
+NB_SHINGLES=2000
+NB_HASHES=64
+NB_BANDS=8
+NB_BUCKETS=5000
 
 # Compilation  ###############################################################
 
@@ -80,7 +80,7 @@ bf_small: $(class_d)/Runner.class
 		-maxTweets 5000 \
 		-dataFile ${DATAFOLDER} \
 		-outputFile ${OUTPUT} \
-		-threshold 0.5 \
+		-threshold 0.75 \
 		-shingleLength ${SHINGLE_LENGTH} \
 		-numShingles ${NB_SHINGLES}
 
@@ -91,7 +91,7 @@ lsh_small: $(class_d)/Runner.class
 		-maxTweets 5000 \
 		-dataFile ${DATAFOLDER} \
 		-outputFile ${OUTPUT} \
-		-threshold 0.5 \
+		-threshold 0.8 \
 		-shingleLength ${SHINGLE_LENGTH} \
 		-numShingles ${NB_SHINGLES} \
 		-numHashes ${NB_HASHES} \
