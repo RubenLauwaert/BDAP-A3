@@ -13,17 +13,17 @@
 DATAFOLDER=../tweets.tsv
 
 # Ouptut directory
-OUTPUT=output.tsv
+OUTPUT=../experiments/numBands_RC/numBands_18.tsv
 
 # Experiment parameters
 THRESHOLD=0.9
 # NB_TWEETS=8870959
 NB_TWEETS=5000000
-SHINGLE_LENGTH=5
+SHINGLE_LENGTH=3
 NB_SHINGLES=2000
-NB_HASHES=64
-NB_BANDS=8
-NB_BUCKETS=5000
+NB_HASHES=48
+NB_BANDS=4
+NB_BUCKETS=1000000000
 
 # Compilation  ###############################################################
 
@@ -37,6 +37,9 @@ JFLAGS=-g -d $(class_d) -cp $(class_d) -Xlint:all
 
 clean:
 	rm -rf $(class_d)/*
+
+$(class_d)/LSHHashTable.class: $(source_d)/LSHHashTable.java
+	@$(JAVAC) $(JFLAGS) $<
 
 $(class_d)/MurmurHash.class: $(source_d)/MurmurHash.java
 	@$(JAVAC) $(JFLAGS) $<
@@ -65,10 +68,13 @@ $(class_d)/BruteForceSearch.class: $(source_d)/BruteForceSearch.java $(class_d)/
 $(class_d)/Minhash.class: $(source_d)/Minhash.java
 	@$(JAVAC) $(JFLAGS) $<
 
-$(class_d)/LSH.class: $(source_d)/LSH.java $(class_d)/SimilaritySearcher.class $(class_d)/Primes.class $(class_d)/Minhash.class
+$(class_d)/LSH.class: $(source_d)/LSH.java $(class_d)/SimilaritySearcher.class $(class_d)/Primes.class $(class_d)/Minhash.class $(class_d)/LSHHashTable.class 
 	@$(JAVAC) $(JFLAGS) $<
 
-$(class_d)/Runner.class: $(source_d)/Runner.java $(class_d)/TwitterReader.class $(class_d)/BruteForceSearch.class $(class_d)/LSH.class
+$(class_d)/LSHOptimized.class: $(source_d)/LSHOptimized.java $(class_d)/SimilaritySearcher.class $(class_d)/Primes.class $(class_d)/Minhash.class $(class_d)/LSHHashTable.class 
+	@$(JAVAC) $(JFLAGS) $<
+
+$(class_d)/Runner.class: $(source_d)/Runner.java $(class_d)/TwitterReader.class $(class_d)/BruteForceSearch.class $(class_d)/LSH.class $(class_d)/LSHOptimized.class
 	@$(JAVAC) $(JFLAGS) $<
 
 # Experiments ################################################################
@@ -77,10 +83,10 @@ bf_small: $(class_d)/Runner.class
 	@echo "Testing BF on subset of data"
 	time java -cp .:$(class_d) -Xmx2g Runner \
 		-method bf \
-		-maxTweets 5000 \
+		-maxTweets 500000 \
 		-dataFile ${DATAFOLDER} \
 		-outputFile ${OUTPUT} \
-		-threshold 0.75 \
+		-threshold 0.9 \
 		-shingleLength ${SHINGLE_LENGTH} \
 		-numShingles ${NB_SHINGLES}
 
@@ -88,14 +94,16 @@ lsh_small: $(class_d)/Runner.class
 	@echo "Testing LSH on subset of data"
 	time java -cp .:$(class_d) -Xmx2g Runner \
 		-method lsh \
-		-maxTweets 5000 \
+		-maxTweets 200000 \
 		-dataFile ${DATAFOLDER} \
 		-outputFile ${OUTPUT} \
-		-threshold 0.8 \
+		-threshold 0.9 \
 		-shingleLength ${SHINGLE_LENGTH} \
 		-numShingles ${NB_SHINGLES} \
 		-numHashes ${NB_HASHES} \
 		-numBands ${NB_BANDS}
+		-numBuckets ${NB_BUCKETS}
+
 
 lsh_full: $(class_d)/Runner.class
 	@echo "Running LSH on full dataset"

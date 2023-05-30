@@ -38,7 +38,6 @@ public final class Minhash {
             for(int i=0 ; i < numValues ; i++){
                 // universal hash : h_a,b(x)=((a·x+b) mod p) mod N
                 int hashValue = Math.abs(((a * i + b) % primeN) % numValues);
-                //System.out.println(hashValue);
                 hashes[i][j] = hashValue;
             }
         }
@@ -61,22 +60,24 @@ public final class Minhash {
 
         int[][] signatureMatrix = initializeSignatureMatrix(numHashes,numObjects);
 
-        // One Pass Implementation
-        List<Set<Integer>> docToShingle = reader.readAll();
+        
+        // Streamline reading of documents
 
-        for(int docIndex=0 ; docIndex < docToShingle.size() ; docIndex++){
-            // Document is represented as a set of shingles
-            // Can be interpreted as a 0/1 vector where every shingle value is the index of a 1 in the vector
-            Set<Integer> shingleDoc = docToShingle.get(docIndex);
+        while(reader.hasNext()){
+            Set<Integer> shingleDoc = reader.next();
+
+            // Iterate over shingle document
             for(int rowIndex : shingleDoc){
                 for(int i=0 ; i < numHashes ; i++){
-                    if(hashValues[rowIndex][i] < signatureMatrix[docIndex][i]){
-                        signatureMatrix[docIndex][i] = hashValues[rowIndex][i];
+                    if(hashValues[rowIndex][i] < signatureMatrix[reader.curDoc][i]){
+                        signatureMatrix[reader.curDoc][i] = hashValues[rowIndex][i];
                     }
                 }
             }
+
         }
-        return signatureMatrix;
+
+        return signatureMatrix;        
     }
 
 
@@ -93,16 +94,60 @@ public final class Minhash {
         return signatureMatrixInit;
     }
 
-    private static void printMatrix(int[][] matrix){
-        int rowAmt = matrix.length;
-        int colAmt = matrix[0].length;
 
-        for(int r=0 ; r < rowAmt ; r++){
-            for(int c=0 ; c < colAmt ; c++){
-                System.out.print(matrix[r][c] + " ");
+    /*
+     * 
+     * OPTIMIZED MINHASH METHODS THAT USES SHORT DATATYPES INSTEAD OF INT DATATYPES
+     * 
+     */
+
+    public static short[][] constructHashTableOptimized(int numHashes, int numValues, int seed) {
+        short[][] hashes = new short[numValues][numHashes];
+
+        int primeN = Primes.findLeastPrimeNumber(numValues);
+
+        for (int j = 0; j < numHashes; j++) {
+            int a = new Random().nextInt();
+            int b = new Random().nextInt();
+            for (int i = 0; i < numValues; i++) {
+                int hashValue = Math.abs(((a * i + b) % primeN) % numValues);
+                hashes[i][j] = (short) hashValue;
             }
-            System.out.println();
         }
+
+        return hashes;
     }
 
+    public static short[][] constructSignatureMatrixOptimized(Reader reader, short[][] hashValues) {
+        int numHashes = hashValues[0].length;
+        int numObjects = reader.maxDocs;
+
+        short[][] signatureMatrix = initializeSignatureMatrixOptimized(numHashes, numObjects);
+
+        while (reader.hasNext()) {
+            Set<Integer> shingleDoc = reader.next();
+
+            for (int rowIndex : shingleDoc) {
+                for (int i = 0; i < numHashes; i++) {
+                    if (hashValues[rowIndex][i] < signatureMatrix[reader.curDoc][i]) {
+                        signatureMatrix[reader.curDoc][i] = hashValues[rowIndex][i];
+                    }
+                }
+            }
+        }
+
+        return signatureMatrix;
+    }
+
+    private static short[][] initializeSignatureMatrixOptimized(int numHashes, int numObjects) {
+        short[][] signatureMatrixInit = new short[numObjects][numHashes];
+
+        for (int c = 0; c < numObjects; c++) {
+            for (int r = 0; r < numHashes; r++) {
+                signatureMatrixInit[c][r] = Short.MAX_VALUE;
+            }
+        }
+
+        return signatureMatrixInit;
+    }
 }

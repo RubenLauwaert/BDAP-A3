@@ -73,6 +73,7 @@ public class Runner {
             if (numHashes == -1 || numBands == -1) {
                 throw new Error("Both -numHashes and -numBands are mandatory arguments for the LSH method");
             }
+            // searcher = new LSH(reader, numHashes, numBands, numBuckets, seed);
             searcher = new LSH(reader, numHashes, numBands, numBuckets, seed);
         }
 

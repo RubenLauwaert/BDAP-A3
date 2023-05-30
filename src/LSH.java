@@ -51,60 +51,9 @@ public class LSH extends SimilaritySearcher {
      */
     @Override
     public Set<SimilarPair> getSimilarPairsAboveThreshold(double threshold) {
-        Set<SimilarPair> similarPairsAboveThreshold = new HashSet<SimilarPair>();
-
-        int[][]  hashTable = Minhash
-            .constructHashTable(this.numHashes, this.reader.getNumShingles(), this.seed);
-        
-        
-        int[][] signatureMatrix = Minhash.constructSignatureMatrix(this.reader, hashTable);
-
-        // Computing Similarities
-        int bandLength = this.numHashes / this.numBands;
-
-        for(int obj1=0 ; obj1 < signatureMatrix.length ; obj1++){
-                int[][] subSignaturesObj1 = splitSignatureIntoBands(signatureMatrix[obj1], this.numBands);
-            for(int obj2=0 ; obj2 < obj1 ; obj2++){
-                int[][] subSignaturesObj2 = splitSignatureIntoBands(signatureMatrix[obj2], this.numBands);
-                // Compare bands (Seperate bucket for each band)
-                for(int b=0 ; b < this.numBands ; b++){
-                    int[] subSignatureObj1 = subSignaturesObj1[b];
-                    int[] subSignatureObj2 = subSignaturesObj2[b];
-                    int hashSubSignatureObj1 = MurmurHash.hash32(intArrayToByteArray(subSignatureObj1), bandLength , this.seed);
-                    int hashSubSignatureObj2 = MurmurHash.hash32(intArrayToByteArray(subSignatureObj2), bandLength , this.seed);
-                    int bucketSubSignatureObj1 = hashSubSignatureObj1 % (this.numBuckets / 2);
-                    int bucketSubSignatureObj2 = hashSubSignatureObj2 % (this.numBuckets / 2);
-                    if(bucketSubSignatureObj1 == bucketSubSignatureObj2){
-                        // Candidate Pair
-                        double sim = jaccardSimilarity(arrayToSet(signatureMatrix[obj1]), arrayToSet(signatureMatrix[obj2]));
-                        if(sim > threshold){
-                            similarPairsAboveThreshold.add(new SimilarPair(reader.getExternalId(obj1), reader.getExternalId(obj2), sim));
-
-                        }
-
-                        break;
-                    }
-                }
-             
-            }
-        }
-
-
-        return similarPairsAboveThreshold;
-    }
-
-    public static int[][] splitSignatureIntoBands(int[] signature, int numBands){
-
-        int numRows = signature.length / numBands;
-        int[][] subSignatures = new int[numBands][numRows];
-        
-        for(int i=0 ; i < signature.length ; i++){
-            int bandIndex = i / numRows;
-            int subRowIndex = i % numRows;
-            subSignatures[bandIndex][subRowIndex] = signature[i];
-        }
-
-        return subSignatures;
+        Set<SimilarPair> similarPairs = new LSHOptimized(reader, numHashes, numBands, numBuckets, seed)
+                                            .getSimilarPairsAboveThreshold(threshold);
+        return similarPairs;
     }
 
     public Set<Integer> arrayToSet(int[] arr) {
@@ -114,25 +63,4 @@ public class LSH extends SimilaritySearcher {
         }
         return set;
     }
-
-
-    public static byte[] intArrayToByteArray(int[] intArray) {
-        ByteBuffer buffer = ByteBuffer.allocate(intArray.length * Integer.BYTES);
-        for (int i : intArray) {
-            buffer.putInt(i);
-        }
-        return buffer.array();
-    }
-
-    public static void printArray(int[] arr) {
-        System.out.print("[ ");
-        for (int i = 0; i < arr.length; i++) {
-            System.out.print(arr[i]);
-            if (i != arr.length - 1) {
-                System.out.print(", ");
-            }
-        }
-        System.out.println(" ]");
-    }
-
 }
