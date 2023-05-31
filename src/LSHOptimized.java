@@ -56,23 +56,25 @@
         // Matrix of hash values (used for constructing signature matrix)
         short[][]  hashTable = Minhash
             .constructHashTableOptimized(this.numHashes, this.reader.getNumShingles(), this.seed);
-        long time2 = System.currentTimeMillis();
-
         // Constructed signature matrix
         short[][] signatureMatrix = Minhash.constructSignatureMatrixOptimized(this.reader, hashTable);
 
         
         int bandSize = this.numHashes / this.numBands;
+
+        //For each band of the signature matrix
         for(int bandIndex = 0 ; bandIndex < numBands ; bandIndex++){
             System.out.println("Generating candidate pairs for band: " + bandIndex);
             // Array that stores documents in buckets (used for identifying candidate pairs)
             LSHHashTable bucketsForBand = new LSHHashTable();
+            // Indexes that specify the range of rows of the bands
             int startIndex = bandIndex * bandSize;
             int endIndex = (bandIndex + 1) * bandSize;
-
+            // Iterate over each signature in the signature matrix
             for(int docInternalId = 0 ; docInternalId < signatureMatrix.length ; docInternalId++){
-               
+                // Document signature
                 short[] docSignature = signatureMatrix[docInternalId];
+                // Portion of signature that corresponds with band
                 short[] bandSigForDoc = new short[bandSize];
                 int bandSigIndex = 0;
 
@@ -81,11 +83,16 @@
                     bandSigIndex++;
                 }
 
+                // Hash the band signature 
                 int hashedBand = MurmurHash.hash32(shortArrayToByteArray(bandSigForDoc), bandSize * Short.BYTES, this.seed);
+                // Retrieve bucket from hash of band signature
                 int bucket = hashedBand % this.numBuckets;
+                // Place the internal document id in the bucket hashtable
                 bucketsForBand.insert(bucket, docInternalId);
             }
 
+
+            // Calculate all the candidate pairs from the bucket hashtable
             for(Set<Integer> bucketForBand : bucketsForBand.getAllBuckets()){
                 // Create pairs of document IDs within the same bucket
                 List<Integer> bucketList = new ArrayList<>(bucketForBand);
@@ -102,8 +109,6 @@
                     }
                 }
             }
-
-
         }     
         return similarPairsAboveThreshold;
     }
@@ -123,17 +128,5 @@
             buffer.putShort(s);
         }
         return buffer.array();
-    }
- 
-     public static void printArray(int[] arr) {
-         System.out.print("[ ");
-         for (int i = 0; i < arr.length; i++) {
-             System.out.print(arr[i]);
-             if (i != arr.length - 1) {
-                 System.out.print(", ");
-             }
-         }
-         System.out.println(" ]");
-     }
- 
+    } 
  }

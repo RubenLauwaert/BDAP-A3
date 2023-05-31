@@ -22,7 +22,7 @@ NB_TWEETS=5000000
 SHINGLE_LENGTH=3
 NB_SHINGLES=2000
 NB_HASHES=48
-NB_BANDS=4
+NB_BANDS=1
 NB_BUCKETS=1000000000
 
 # Compilation  ###############################################################
